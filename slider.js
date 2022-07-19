@@ -16,29 +16,42 @@ window.onload = function () {
       }, time);
     }
 
+    let debounceTimer;
+
+    function debounce(callback, time) {
+      window.clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(callback, time);
+    }
+
     // VARIABLES
     const IMAGES = document.querySelector(".zara-slider__images");
-    const IMAGES_HEIGHT = IMAGES.clientHeight;
     const THUMBNAIL_BUTTONS = document.querySelectorAll(
       ".zara-slider__thumbnails button"
     );
     const PROGRESS_BAR = document.querySelector(".zara-slider__progress-bar");
-    const PROGRESS_HEIGHT = document.querySelector(".zara-slider__progress")
-      .clientHeight;
+    const PROGRESS = document.querySelector(".zara-slider__progress");
     const TOTAL = document.querySelector(".zara-slider__images > ul")
       .childElementCount;
-    const progressStep = PROGRESS_HEIGHT / TOTAL;
 
     let currentSlide = 1;
 
     // FUNCTIONS
-    function updateSlider(slideNumber) {
-      IMAGES.style.transform = `translateY(-${(slideNumber - 1) * IMAGES_HEIGHT
+    function getProgressStep() {
+      return PROGRESS.clientHeight / TOTAL;
+    }
+
+    function updateSliderSlide() {
+      IMAGES.style.transform = `translateY(-${(currentSlide - 1) * IMAGES.clientHeight
         }px)`;
     }
 
-    function updateSliderProgress(slideNumber) {
-      PROGRESS_BAR.style.height = `${progressStep * slideNumber}px`;
+    function updateSliderProgress() {
+      PROGRESS_BAR.style.height = `${getProgressStep() * currentSlide}px`;
+    }
+
+    function updateSlider() {
+      updateSliderSlide();
+      updateSliderProgress()
     }
 
     function moveSlide(e) {
@@ -52,32 +65,32 @@ window.onload = function () {
       }
 
       currentSlide = isNext ? currentSlide + 1 : currentSlide - 1;
-      updateSlider(currentSlide);
-      updateSliderProgress(currentSlide);
+      updateSlider();
     }
 
     // EVENTS
-    IMAGES.addEventListener(
-      "wheel",
-      (e) => {
-        throttle(() => moveSlide(e), 1600);
-        e.preventDefault();
-      },
-      false
-    );
+    window.addEventListener('resize', () => {
+      debounce(updateSlider, 500);
+    });
 
     for (let i = 0; i < THUMBNAIL_BUTTONS.length; i++) {
       const button = THUMBNAIL_BUTTONS[i];
 
       button.addEventListener("click", () => {
+        // FIXME closure
         currentSlide = parseInt(button.dataset.slideNumber);
-        updateSlider(currentSlide);
-        updateSliderProgress(currentSlide);
+        console.log('click thumbnails', currentSlide);
+        updateSlider();
       });
     }
 
+    IMAGES.addEventListener("wheel", (e) => {
+      throttle(() => moveSlide(e), 1600);
+      e.preventDefault();
+    }, false);
+
     // INIT
-    updateSliderProgress(currentSlide);
+    updateSlider();
 
     const INNER_SLIDER = document.querySelector(".zara-slider__images ul");
     let pressed = false;
@@ -93,7 +106,7 @@ window.onload = function () {
     });
     IMAGES.addEventListener("mouseenter", (e) => {
       initialY = e.clientY;
-      console.log('mouseenter', initialY);
+      // console.log('mouseenter', initialY);
       IMAGES.style.cursor = "grab";
     });
     IMAGES.addEventListener("mouseup", () => {
@@ -102,8 +115,7 @@ window.onload = function () {
       pressed = false;
 
       currentSlide = isUp ? currentSlide + 1 : currentSlide - 1;
-      updateSlider(currentSlide);
-      updateSliderProgress(currentSlide);
+      updateSlider();
     });
     IMAGES.addEventListener("mousemove", (e) => {
       if (!pressed) return;
@@ -118,5 +130,28 @@ window.onload = function () {
       console.log('mousemove', isUp, initialY, y, y - initialY);
       //IMAGES.style.transform = `translateY(${y-initialY}px)`;
     });
+
+
+    //////
+    // TODO
+    // click GIANT
+
+    let touchstartY = 0
+    let touchendY = 0
+
+    function isTouchUp() {
+      return (touchendY < touchstartY) ? true : false;
+    }
+
+    document.addEventListener('touchstart', e => {
+      touchstartY = e.changedTouches[0].screenY
+    })
+
+    document.addEventListener('touchend', e => {
+      touchendY = e.changedTouches[0].screenY
+
+      currentSlide = isTouchUp() ? currentSlide + 1 : currentSlide - 1;
+      updateSlider();
+    })
   })();
 };

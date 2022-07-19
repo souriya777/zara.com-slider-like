@@ -4,6 +4,7 @@ $transition-thumbails: 650ms ease;
 
 .zara-slider {
   background: pink;
+  height: 100%;
   display: flex;
   justify-content: center;
   clip-path: inset(0);
@@ -14,19 +15,17 @@ $transition-thumbails: 650ms ease;
     list-style: none;
   }
 
+  &__images,
+  &__images ul,
+  &__images ul li,
+  &__images ul li img {
+    height: 100%;
+  }
+
   &__images {
     background: lightcyan;
     transition: transform $transition-cubic;
     cursor: pointer;
-
-    ul {
-      max-height: 500px;
-    }
-    
-    img {
-      // FIXME
-      // max-height: 500px;
-    }
   }
 
   &__thumbnails {
@@ -47,7 +46,8 @@ $transition-thumbails: 650ms ease;
   }
 
   &__progress {
-    height: 500px;
+    // height: 500px;
+    height: 100%;
     width: 1px;
     background: yellow;
     margin: auto 20px;
@@ -65,5 +65,20 @@ $transition-thumbails: 650ms ease;
   &__thumbnails:hover {
     opacity: 1;
     transition: opacity $transition-thumbails;
+  }
+
+  @media screen and (max-width: 695px) {
+    background: red;
+
+    &__progress {
+      display: none;
+    }
+
+    &__thumbnails {
+      opacity: 1;
+    }
+    ul.zara-slider__thumbnails {
+      margin-left: 20px;
+    }
   }
 }
